@@ -81,8 +81,6 @@ void print_data(void)
 }
 
 void myfree(void *p) {
-    // struct block *freeblock = p;
-    // freeblock -> in_use = 0;
     void *blockp = p - PADDED_SIZE(sizeof(struct block));
     ((struct block *) blockp) -> in_use = 0;
 }
