@@ -25,11 +25,32 @@ void *myalloc(int size) {
     struct block *curr = head;
 
     while(curr != NULL) {
-        if (curr -> in_use == 0 && curr -> size >= size) {
-            curr -> in_use = 1;
+
+        int padded_requested_size = PADDED_SIZE(size);
+
+        if (curr -> in_use == 0 && curr -> size >= padded_requested_size) {
+
             int padded_block_size = PADDED_SIZE(sizeof(struct block));
+            int required_space = 16 + padded_block_size + padded_requested_size;
+
+            if (curr -> size >= required_space) { //split block function
+
+                void* newblockptr = curr;
+                newblockptr = newblockptr + padded_requested_size;
+
+                struct block *newblock = newblockptr;  
+                newblock -> next = curr -> next;
+                newblock -> size = curr -> size - padded_requested_size - padded_block_size;
+                newblock -> in_use = 0;
+
+                curr -> size = padded_requested_size;
+                curr -> next = newblock;
+            }
+
+            curr -> in_use = 1;
             return PTR_OFFSET(curr, padded_block_size);
         }
+
         curr = curr->next;
     }
     return NULL;
@@ -60,15 +81,19 @@ void print_data(void)
 }
 
 void myfree(void *p) {
-
+    // struct block *freeblock = p;
+    // freeblock -> in_use = 0;
+    void *blockp = p - PADDED_SIZE(sizeof(struct block));
+    ((struct block *) blockp) -> in_use = 0;
 }
 
 int main() {
     void *p;
 
-    print_data();
-    p = myalloc(16);
-    print_data();
-    p = myalloc(16);
-    printf("%p\n", p);
+    myalloc(10);     print_data();
+    p = myalloc(20); print_data();
+    myalloc(30);     print_data();
+    myfree(p);       print_data();
+    myalloc(40);     print_data();
+    myalloc(10);     print_data();
 }
