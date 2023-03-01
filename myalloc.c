@@ -83,15 +83,30 @@ void print_data(void)
 void myfree(void *p) {
     void *blockp = p - PADDED_SIZE(sizeof(struct block));
     ((struct block *) blockp) -> in_use = 0;
+
+    struct block *b = head;
+
+    while (b->next != NULL) {
+        if (b->in_use == 0 && b->next->in_use == 0) {
+            b->size = b->size + PADDED_SIZE(sizeof(struct block)) + b->next->size;
+            b->next = b->next->next;
+        } else {
+            b = b->next;
+        }
+    }
 }
 
-int main() {
-    void *p;
 
-    myalloc(10);     print_data();
-    p = myalloc(20); print_data();
-    myalloc(30);     print_data();
-    myfree(p);       print_data();
-    myalloc(40);     print_data();
-    myalloc(10);     print_data();
+int main() {
+    void *p, *q, *r, *s;
+
+    p = myalloc(10); print_data();
+    q = myalloc(20); print_data();
+    r = myalloc(30); print_data();
+    s = myalloc(40); print_data();
+
+    myfree(q); print_data();
+    myfree(p); print_data();
+    myfree(s); print_data();
+    myfree(r); print_data();
 }
